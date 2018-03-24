@@ -1,4 +1,4 @@
-version: '2.3'
+version: '2'
 services:
   wso2ei-mysql:
     image: mysql:5.7.20
@@ -13,14 +13,8 @@ services:
       - ./mysql/scripts:/docker-entrypoint-initdb.d
       # mounting MySQL DB data
       - ./mysql/data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-uroot", "-proot"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-      start_period: 20s
   wso2ei-analytics:
-    image: docker.wso2.com/wso2ei-analytics:6.1.1
+    image: wso2ei-analytics:6.1.1
     container_name: wso2ei-analytics
     hostname: wso2ei-analytics
     ports:
@@ -29,12 +23,6 @@ services:
       - 9712:9712
       - 7712:7712
       - 7612:7612
-    healthcheck:
-      test: ["CMD-SHELL", "curl -k -f https://localhost:9444/carbon/admin/login.jsp"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-      start_period: 30s
     volumes:
       # mounting configurations
       - ./analytics/conf/datasources/master-datasources.xml:/home/wso2carbon/wso2ei-6.1.1/wso2/analytics/conf/datasources/master-datasources.xml
@@ -46,22 +34,15 @@ services:
       - ./analytics/repository/resources/security/wso2carbon.jks:/home/wso2carbon/wso2ei-6.1.1/wso2/analytics/repository/resources/security/wso2carbon.jks
       - ./analytics/repository/resources/security/client-truststore.jks:/home/wso2carbon/wso2ei-6.1.1/wso2/analytics/repository/resources/security/client-truststore.jks
     depends_on:
-      wso2ei-mysql:
-        condition: service_healthy
+      - wso2ei-mysql
     links:
       - wso2ei-mysql
   wso2ei-business-process:
-    image: docker.wso2.com/wso2ei-business-process:6.1.1
+    image: wso2ei-business-process:6.1.1
     container_name: wso2ei-business-process
     hostname: wso2ei-business-process
     ports:
       - 9445:9445
-    healthcheck:
-      test: ["CMD-SHELL", "curl -k -f https://localhost:9445/carbon/admin/login.jsp"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-      start_period: 60s
     volumes:
       # mounting configurations
       - ./business-process/conf/datasources/master-datasources.xml:/home/wso2carbon/wso2ei-6.1.1/wso2/business-process/conf/datasources/master-datasources.xml
@@ -76,15 +57,13 @@ services:
       - ./business-process/repository/resources/security/wso2carbon.jks:/home/wso2carbon/wso2ei-6.1.1/wso2/business-process/repository/resources/security/wso2carbon.jks
       - ./business-process/repository/resources/security/client-truststore.jks:/home/wso2carbon/wso2ei-6.1.1/wso2/business-process/repository/resources/security/client-truststore.jks
     depends_on:
-      wso2ei-mysql:
-        condition: service_healthy
-      wso2ei-analytics:
-        condition: service_healthy
+      - wso2ei-mysql
+      - wso2ei-analytics
     links:
       - wso2ei-mysql
       - wso2ei-analytics
   wso2ei-broker:
-    image: docker.wso2.com/wso2ei-broker:6.1.1
+    image: wso2ei-broker:6.1.1
     container_name: wso2ei-broker
     hostname: wso2ei-broker
     ports:
@@ -94,12 +73,6 @@ services:
       - 1886:1886
       - 8836:8836
       - 7614:7614
-    healthcheck:
-      test: ["CMD-SHELL", "curl -k -f https://localhost:9446/carbon/admin/login.jsp"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-      start_period: 90s
     volumes:
       # mounting configurations
       - ./broker/conf/datasources/master-datasources.xml:/home/wso2carbon/wso2ei-6.1.1/wso2/broker/conf/datasources/master-datasources.xml
@@ -111,30 +84,21 @@ services:
       - ./broker/repository/resources/security/wso2carbon.jks:/home/wso2carbon/wso2ei-6.1.1/wso2/broker/repository/resources/security/wso2carbon.jks
       - ./broker/repository/resources/security/client-truststore.jks:/home/wso2carbon/wso2ei-6.1.1/wso2/broker/repository/resources/security/client-truststore.jks
     depends_on:
-      wso2ei-mysql:
-        condition: service_healthy
-      wso2ei-analytics:
-        condition: service_healthy
-      wso2ei-business-process:
-        condition: service_healthy
+      - wso2ei-mysql
+      - wso2ei-analytics
+      - wso2ei-business-process
     links:
       - wso2ei-mysql
       - wso2ei-analytics
       - wso2ei-business-process
   wso2ei-integrator:
-    image: docker.wso2.com/wso2ei-integrator:6.1.1
+    image: wso2ei-integrator:6.1.1
     container_name: wso2ei-integrator
     hostname: wso2ei-integrator
     ports:
       - 9443:9443
       - 8243:8243
       - 8280:8280
-    healthcheck:
-      test: ["CMD-SHELL", "curl -k -f https://localhost:9443/carbon/admin/login.jsp"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-      start_period: 120s
     volumes:
       # mounting configurations
       - ./integrator/conf/datasources/master-datasources.xml:/home/wso2carbon/wso2ei-6.1.1/conf/datasources/master-datasources.xml
@@ -154,14 +118,10 @@ services:
       - ./integrator/repository/resources/security/wso2carbon.jks:/home/wso2carbon/wso2ei-6.1.1/epository/resources/security/wso2carbon.jks
       - ./integrator/repository/resources/security/client-truststore.jks:/home/wso2carbon/wso2ei-6.1.1/repository/resources/security/client-truststore.jks
     depends_on:
-      wso2ei-mysql:
-        condition: service_healthy
-      wso2ei-analytics:
-        condition: service_healthy
-      wso2ei-business-process:
-        condition: service_healthy
-      wso2ei-broker:
-        condition: service_healthy
+      - wso2ei-mysql
+      - wso2ei-analytics
+      - wso2ei-business-process
+      - wso2ei-broker
     links:
       - wso2ei-mysql
       - wso2ei-analytics
